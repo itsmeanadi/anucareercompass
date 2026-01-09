@@ -83,7 +83,7 @@ export default function RecruiterDashboard() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1f3445] to-slate-700 flex items-center justify-center">
               <Briefcase className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-[#1f3445]">CareerPath</span>
+            <span className="text-xl font-bold text-[#1f3445]">Perfect Placement</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#1f3445]/80 font-medium hidden sm:block">

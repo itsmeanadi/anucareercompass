@@ -130,7 +130,7 @@ export default function Roadmap() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1f3445] to-slate-700 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">CareerPath</span>
+            <span className="text-xl font-bold">Perfect Placement</span>
           </div>
           <Button variant="outline" onClick={() => window.history.back()}>
             Back to Dashboard

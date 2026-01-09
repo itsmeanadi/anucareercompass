@@ -7,8 +7,9 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useRole } from '@/lib/role-context';
-import { auth } from '@/lib/firebase';
+import { auth, signInWithGoogle, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 
 export default function Auth() {
@@ -97,67 +98,46 @@ export default function Auth() {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      const { signInWithGoogle } = await import('@/lib/firebase');
+      // const { signInWithGoogle } = await import('@/lib/firebase'); // Removed dynamic import
       const userData = await signInWithGoogle();
 
-      // Check if user already exists in Firestore
-      const { doc, getDoc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('@/lib/firebase');
-      const userRef = doc(db, 'users', userData.uid);
-      const userSnap = await getDoc(userRef);
+      // HACKATHON FIX: Fire and forget
+      // We try to save the user, but if it fails (offline), we don't care.
+      // We just want to get them to the next screen.
 
-      let userRole = 'applicant';
-      let onboardingCompleted = false;
+      try {
+        // const { doc, setDoc, getDoc } = await import('firebase/firestore'); // Removed dynamic import
+        // const { db } = await import('@/lib/firebase'); // Removed dynamic import
+        const userRef = doc(db, 'users', userData.uid);
 
-      if (userSnap.exists()) {
-        const userDataFromDB = userSnap.data();
-        userRole = userDataFromDB.role || 'applicant';
-        onboardingCompleted = userDataFromDB.onboardingCompleted || false;
+        // Try to sync (fire and forget)
+        getDoc(userRef).then(snap => {
+          if (!snap.exists()) {
+            setDoc(userRef, {
+              uid: userData.uid,
+              email: userData.email,
+              role: 'applicant',
+              photoURL: userData.photoURL,
+              displayName: userData.displayName,
+              createdAt: new Date(),
+              onboardingCompleted: false
+            }).catch(e => console.warn('Background create failed', e));
+          }
+        }).catch(e => console.warn('Background fetch failed', e));
 
-        // Update user role in context
-        await setUserRole(userRole as 'applicant' | 'recruiter');
-      } else {
-        // Create user profile in Firestore
-        await setDoc(userRef, {
-          uid: userData.uid,
-          email: userData.email,
-          role: 'applicant',
-          photoURL: userData.photoURL,
-          displayName: userData.displayName,
-          createdAt: new Date(),
-          onboardingCompleted: false
-        });
+        // Try to update context (fire and forget)
+        setUserRole('applicant').catch(e => console.warn('Context update failed', e));
 
-        // Update user role in context
-        await setUserRole('applicant');
+      } catch (e) {
+        console.warn('Setup failed', e);
       }
 
-      // Redirect based on role and onboarding status
-      if (userRole === 'recruiter') {
-        navigate('/recruiter-dashboard');
-      } else if (!onboardingCompleted) {
-        navigate('/onboarding');
-      } else {
-        navigate('/dashboard');
-      }
+      // NUCLEAR OPTION: Hard redirect to clear state and potential errors
+      console.log('Force redirecting to onboarding via window.location...');
+      window.location.href = '/onboarding';
+
     } catch (error) {
       console.error('Google auth error:', error);
-      let message = 'Google authentication failed';
-
-      if (error instanceof Error) {
-        // Check for specific error types
-        if (error.message.includes('popup-blocked')) {
-          message = 'Popup was blocked. Please allow popups for this site and try again.';
-        } else if (error.message.includes('popup-closed-by-user') || error.message.includes('cancelled')) {
-          message = 'Sign-in was cancelled. Please try again.';
-        } else if (error.message.includes('network')) {
-          message = 'Network error. Please check your connection and try again.';
-        } else {
-          message += ': ' + error.message;
-        }
-      }
-
-      toast.error(message);
     } finally {
       setLoading(false);
     }

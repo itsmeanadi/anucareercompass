@@ -32,7 +32,8 @@ import {
   Lightbulb,
   GraduationCap,
   Briefcase,
-  Globe
+  Globe,
+  Share2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -237,76 +238,76 @@ export default function Roadmap() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="glass sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1f3445] to-slate-700 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+              <BookOpen className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">Perfect Placement</span>
+            <span className="text-xl font-bold text-slate-900">CareerCompass</span>
           </div>
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
+          <Button variant="outline" onClick={() => navigate('/dashboard')} className="border-slate-200 text-slate-600 hover:bg-slate-50">
             Back to Dashboard
           </Button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#1f3445] mb-2">Personalized Learning Roadmap</h1>
-          <p className="text-muted-foreground">Follow the path that successful seniors took to land internships</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Personalized Learning Roadmap</h1>
+          <p className="text-slate-500">Follow the path that successful seniors took to land internships</p>
         </div>
 
         {/* Student Details Section */}
-        <div className="glass rounded-2xl p-6 mb-8">
-          <h2 className="text-xl font-bold text-[#1f3445] mb-4 flex items-center gap-2">
-            <User className="w-5 h-5 text-[#1f3445]" /> Your Profile
+        <div className="bg-white rounded-2xl p-6 mb-8 shadow-sm border border-slate-100">
+          <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <User className="w-5 h-5 text-blue-600" /> Your Profile
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <Label className="text-[#1f3445]/80">Full Name</Label>
+              <Label className="text-slate-500">Full Name</Label>
               <Input
                 value={profile.full_name}
                 readOnly
-                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
+                className="h-10 border-slate-200 text-slate-900 bg-slate-50 mt-1 w-full rounded-md px-3 border"
               />
             </div>
             <div>
-              <Label className="text-[#1f3445]/80">Email</Label>
+              <Label className="text-slate-500">Email</Label>
               <Input
                 value={profile.email}
                 readOnly
-                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
+                className="h-10 border-slate-200 text-slate-900 bg-slate-50 mt-1 w-full rounded-md px-3 border"
               />
             </div>
             <div>
-              <Label className="text-[#1f3445]/80">Year of Study</Label>
+              <Label className="text-slate-500">Year of Study</Label>
               <Input
                 value={profile.year_of_study}
                 readOnly
-                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
+                className="h-10 border-slate-200 text-slate-900 bg-slate-50 mt-1 w-full rounded-md px-3 border"
               />
             </div>
             <div>
-              <Label className="text-[#1f3445]/80">CGPA Range</Label>
+              <Label className="text-slate-500">CGPA Range</Label>
               <Input
                 value={profile.cgpa_range}
                 readOnly
-                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
+                className="h-10 border-slate-200 text-slate-900 bg-slate-50 mt-1 w-full rounded-md px-3 border"
               />
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="glass rounded-2xl p-6 mb-8">
-          <div className="flex border-b border-[#1f3445]/20 mb-6">
+        <div className="bg-white rounded-2xl p-6 mb-8 shadow-sm border border-slate-100">
+          <div className="flex border-b border-slate-100 mb-6">
             <Button
               variant="ghost"
-              className={`mr-2 ${activeTab === 'timeline' ? 'border-b-2 border-[#1f3445] text-[#1f3445]' : 'text-[#1f3445]/70 hover:text-[#1f3445]'}`}
+              className={`mr-2 rounded-t-lg rounded-b-none hover:bg-slate-50 ${activeTab === 'timeline' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-500'}`}
               onClick={() => setActiveTab('timeline')}
             >
               <Calendar className="w-4 h-4 mr-2" />
@@ -314,7 +315,7 @@ export default function Roadmap() {
             </Button>
             <Button
               variant="ghost"
-              className={`${activeTab === 'skills' ? 'border-b-2 border-[#1f3445] text-[#1f3445]' : 'text-[#1f3445]/70 hover:text-[#1f3445]'}`}
+              className={`rounded-t-lg rounded-b-none hover:bg-slate-50 ${activeTab === 'skills' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-500'}`}
               onClick={() => setActiveTab('skills')}
             >
               <Target className="w-4 h-4 mr-2" />
@@ -325,10 +326,10 @@ export default function Roadmap() {
           {activeTab === 'timeline' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#1f3445]">Your Learning Journey</h3>
+                <h3 className="text-lg font-bold text-slate-900">Your Learning Journey</h3>
                 <Button
                   variant="outline"
-                  className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10"
+                  className="border-slate-200 text-slate-600 hover:bg-slate-50"
                   onClick={() => {
                     toast.info('Adding new roadmap items coming soon!');
                   }}
@@ -337,66 +338,66 @@ export default function Roadmap() {
                 </Button>
               </div>
 
-              <div className="relative">
+              <div className="relative pl-2">
                 {/* Timeline line */}
-                <div className="absolute left-4 top-0 h-full w-0.5 bg-[#1f3445]/20 transform translate-x-0.5"></div>
+                <div className="absolute left-4 top-0 h-full w-0.5 bg-slate-200 transform translate-x-0.5"></div>
 
                 {userTimelineEvents.map((event, index) => (
-                  <div key={event.id} className="relative flex gap-4 mb-8">
+                  <div key={event.id} className="relative flex gap-6 mb-8 group pl-2">
                     {/* Timeline dot */}
-                    <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-[#1f3445] text-white">
+                    <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform">
                       {index + 1}
                     </div>
 
                     {/* Event card */}
-                    <div className="flex-1 bg-white/50 rounded-xl p-5 border border-[#1f3445]/20">
+                    <div className="flex-1 bg-white rounded-xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all">
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
                         <div>
-                          <h4 className="font-bold text-[#1f3445] text-lg">{event.title}</h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary" className="bg-[#1f3445]/10 text-[#1f3445]">
+                          <h4 className="font-bold text-slate-900 text-lg">{event.title}</h4>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-200">
                               {event.type}
                             </Badge>
-                            <div className="flex items-center gap-1 text-sm text-[#1f3445]/80">
-                              <Calendar className="w-4 h-4" />
+                            <div className="flex items-center gap-1 text-sm text-slate-500">
+                              <Calendar className="w-3.5 h-3.5" />
                               <span>{event.date}</span>
                             </div>
-                            <div className="flex items-center gap-1 text-sm text-[#1f3445]/80">
-                              <Clock className="w-4 h-4" />
+                            <div className="flex items-center gap-1 text-sm text-slate-500">
+                              <Clock className="w-3.5 h-3.5" />
                               <span>{event.duration}</span>
                             </div>
                           </div>
                         </div>
 
-                        <Badge className="bg-green-500/20 text-green-700">
+                        <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
                           {event.mode}
                         </Badge>
                       </div>
 
-                      <p className="text-[#1f3445]/90 mb-3">{event.description}</p>
+                      <p className="text-slate-600 mb-4 text-sm leading-relaxed">{event.description}</p>
 
-                      <div className="flex flex-wrap items-center gap-4 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Target className="w-4 h-4 text-[#1f3445]" />
-                          <span className="font-medium">Focus: {event.skill}</span>
+                      <div className="flex flex-wrap items-center gap-4 text-sm border-t border-slate-50 pt-3">
+                        <div className="flex items-center gap-1.5">
+                          <Target className="w-4 h-4 text-blue-600" />
+                          <span className="font-medium text-slate-700">Focus: {event.skill}</span>
                         </div>
 
                         {event.location && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4 text-[#1f3445]" />
-                            <span>{event.location}</span>
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-4 h-4 text-slate-400" />
+                            <span className="text-slate-600">{event.location}</span>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-bold">{event.rating}</span>
+                          <span className="font-bold text-slate-900">{event.rating}</span>
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-[#1f3445]/10">
-                        <p className="text-sm text-[#1f3445]/80">
-                          <span className="font-medium">Result:</span> {event.internshipOutcome}
+                      <div className="mt-3 bg-blue-50/50 rounded-lg p-3">
+                        <p className="text-sm text-blue-900">
+                          <span className="font-semibold">Result:</span> {event.internshipOutcome}
                         </p>
                       </div>
                     </div>
@@ -408,21 +409,21 @@ export default function Roadmap() {
 
           {activeTab === 'skills' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-bold text-[#1f3445]">Skill Gap Analysis</h3>
+              <h3 className="text-lg font-bold text-slate-900">Skill Gap Analysis</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-[#1f3445]/30">
+                <Card className="border-slate-200 shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-[#1f3445] font-bold">Your Current Skills</CardTitle>
+                    <CardTitle className="text-slate-900 font-bold">Your Current Skills</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {['React', 'JavaScript', 'TypeScript', 'Node.js', 'Python'].map((skill, index) => (
                         <div key={skill} className="flex items-center justify-between">
-                          <span className="text-[#1f3445]">{skill}</span>
-                          <div className="flex items-center gap-2">
-                            <Progress value={(index % 2 === 0 ? 80 : 60) - (index * 5)} className="w-24 h-2" />
-                            <span className="text-sm text-[#1f3445]/70 w-10">{(index % 2 === 0 ? 80 : 60) - (index * 5)}%</span>
+                          <span className="text-slate-700 font-medium">{skill}</span>
+                          <div className="flex items-center gap-3">
+                            <Progress value={(index % 2 === 0 ? 80 : 60) - (index * 5)} className="w-32 h-2 [&>div]:bg-blue-600" />
+                            <span className="text-sm text-slate-500 w-8 text-right">{(index % 2 === 0 ? 80 : 60) - (index * 5)}%</span>
                           </div>
                         </div>
                       ))}
@@ -430,18 +431,18 @@ export default function Roadmap() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-[#1f3445]/30">
+                <Card className="border-slate-200 shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-[#1f3445] font-bold">Skills Needed for Target Roles</CardTitle>
+                    <CardTitle className="text-slate-900 font-bold">Skills Needed for Target Roles</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {['React', 'Advanced JavaScript', 'TypeScript', 'Node.js', 'GraphQL', 'AWS'].map((skill, index) => (
                         <div key={skill} className="flex items-center justify-between">
-                          <span className="text-[#1f3445]">{skill}</span>
-                          <div className="flex items-center gap-2">
-                            <Progress value={index < 4 ? 90 : 70} className="w-24 h-2" />
-                            <span className="text-sm text-[#1f3445]/70 w-10">{index < 4 ? 90 : 70}%</span>
+                          <span className="text-slate-700 font-medium">{skill}</span>
+                          <div className="flex items-center gap-3">
+                            <Progress value={index < 4 ? 90 : 70} className="w-32 h-2 [&>div]:bg-green-600" />
+                            <span className="text-sm text-slate-500 w-8 text-right">{index < 4 ? 90 : 70}%</span>
                           </div>
                         </div>
                       ))}
@@ -450,50 +451,52 @@ export default function Roadmap() {
                 </Card>
               </div>
 
-              <Card className="border-[#1f3445]/30">
+              <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-white to-blue-50/30">
                 <CardHeader>
-                  <CardTitle className="text-[#1f3445] font-bold">Recommended Learning Path</CardTitle>
+                  <CardTitle className="text-slate-900 font-bold flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-yellow-500" /> Recommended Learning Path
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-start gap-3 p-4 bg-[#1f3445]/5 rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-[#1f3445]/20 flex items-center justify-center flex-shrink-0">
-                        <Lightbulb className="w-4 h-4 text-[#1f3445]" />
+                    <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <BookText className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-[#1f3445] mb-1">Advanced React Patterns</h4>
-                        <p className="text-sm text-[#1f3445]/80 mb-2">Learn advanced React patterns to improve your skills in the most in-demand framework</p>
+                        <h4 className="font-bold text-slate-900 mb-1">Advanced React Patterns</h4>
+                        <p className="text-sm text-slate-600 mb-3">Learn advanced React patterns to improve your skills in the most in-demand framework</p>
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">6 weeks</span>
-                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">Online</span>
+                          <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">6 weeks</span>
+                          <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">Online</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 p-4 bg-[#1f3445]/5 rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-[#1f3445]/20 flex items-center justify-center flex-shrink-0">
-                        <Lightbulb className="w-4 h-4 text-[#1f3445]" />
+                    <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <Share2 className="w-5 h-5 text-indigo-600" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-[#1f3445] mb-1">System Design Fundamentals</h4>
-                        <p className="text-sm text-[#1f3445]/80 mb-2">Master the fundamentals of system design for senior developer roles</p>
+                        <h4 className="font-bold text-slate-900 mb-1">System Design Fundamentals</h4>
+                        <p className="text-sm text-slate-600 mb-3">Master the fundamentals of system design for senior developer roles</p>
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">4 weeks</span>
-                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">Online</span>
+                          <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">4 weeks</span>
+                          <span className="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full font-medium">Online</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 p-4 bg-[#1f3445]/5 rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-[#1f3445]/20 flex items-center justify-center flex-shrink-0">
-                        <Lightbulb className="w-4 h-4 text-[#1f3445]" />
+                    <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-5 h-5 text-green-600" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-[#1f3445] mb-1">Behavioral Interview Prep</h4>
-                        <p className="text-sm text-[#1f3445]/80 mb-2">Prepare for behavioral interviews with structured response techniques</p>
+                        <h4 className="font-bold text-slate-900 mb-1">Behavioral Interview Prep</h4>
+                        <p className="text-sm text-slate-600 mb-3">Prepare for behavioral interviews with structured response techniques</p>
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">2 weeks</span>
-                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">Workshop</span>
+                          <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">2 weeks</span>
+                          <span className="bg-green-50 text-green-600 px-2.5 py-1 rounded-full font-medium">Workshop</span>
                         </div>
                       </div>
                     </div>
@@ -505,12 +508,12 @@ export default function Roadmap() {
         </div>
 
         {/* Recommended Internships */}
-        <div className="glass rounded-2xl p-6">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[#1f3445]">Recommended Internships</h2>
+            <h2 className="text-xl font-bold text-slate-900">Recommended Internships</h2>
             <Button
               variant="outline"
-              className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10"
+              className="border-slate-200 text-slate-600 hover:bg-slate-50"
               onClick={() => navigate('/dashboard')}
             >
               View All
@@ -519,51 +522,51 @@ export default function Roadmap() {
 
           <div className="space-y-4">
             {internships.slice(0, 2).map((internship) => (
-              <div key={internship.id} className="bg-white/50 rounded-xl p-5 border border-[#1f3445]/20">
+              <div key={internship.id} className="bg-slate-50 rounded-xl p-6 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-start gap-2 mb-2">
-                      <h3 className="text-lg font-bold text-[#1f3445]">{internship.title}</h3>
+                      <h3 className="text-lg font-bold text-slate-900">{internship.title}</h3>
                       {internship.featured && (
-                        <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+                        <Badge className="bg-blue-600 text-white border-none">
                           Featured
                         </Badge>
                       )}
-                      <Badge variant="secondary" className="bg-[#1f3445]/10 text-[#1f3445]">
+                      <Badge variant="secondary" className="bg-white text-slate-700 border border-slate-200">
                         {internship.type === 'govt' ? 'Government' : 'Private'}
                       </Badge>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-[#1f3445]/80 mb-3">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 mb-3">
                       <div className="flex items-center gap-1">
-                        <Building className="w-4 h-4" />
+                        <Building className="w-4 h-4 text-slate-400" />
                         <span>{internship.company}</span>
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
+                        <MapPin className="w-4 h-4 text-slate-400" />
                         <span>{internship.location}</span>
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
+                        <Clock className="w-4 h-4 text-slate-400" />
                         <span>{internship.duration}</span>
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <IndianRupee className="w-4 h-4" />
-                        <span className="font-bold">₹{internship.stipend.toLocaleString()}/month</span>
+                        <IndianRupee className="w-4 h-4 text-slate-400" />
+                        <span className="font-bold text-slate-900">₹{internship.stipend.toLocaleString()}/month</span>
                       </div>
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-3">
                       {internship.skills.slice(0, 3).map((skill: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="border-[#1f3445]/30 text-[#1f3445]">
+                        <Badge key={idx} variant="outline" className="border-slate-200 text-slate-600 bg-white">
                           {skill}
                         </Badge>
                       ))}
                       {internship.skills.length > 3 && (
-                        <Badge variant="outline" className="border-[#1f3445]/30 text-[#1f3445]">
+                        <Badge variant="outline" className="border-slate-200 text-slate-600 bg-white">
                           +{internship.skills.length - 3} more
                         </Badge>
                       )}
@@ -573,7 +576,7 @@ export default function Roadmap() {
                   <div className="flex flex-col sm:flex-row gap-2 min-w-fit">
                     <Button
                       variant="outline"
-                      className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10 font-medium"
+                      className="border-slate-200 text-slate-700 hover:bg-white"
                       onClick={() => navigate(`/internship/${internship.id}`)}
                     >
                       View Details
@@ -581,7 +584,7 @@ export default function Roadmap() {
                     </Button>
 
                     <Button
-                      className="bg-[#1f3445] hover:bg-[#1f3445]/90 text-white font-medium"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md shadow-blue-600/20"
                       onClick={() => {
                         toast.success(`Applied to ${internship.title} at ${internship.company}`);
                         // In a real app, this would submit an application

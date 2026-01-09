@@ -17,15 +17,16 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const setUserRole = async (role: 'applicant' | 'recruiter') => {
-    if (user) {
+    const currentUser = user || auth.currentUser;
+    if (currentUser) {
       // Update user role in Firestore
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, { 
-        email: user.email,
+      const userRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        email: currentUser.email,
         role: role,
         updatedAt: new Date()
       }, { merge: true });
-      
+
       setUserRoleState(role);
     }
   };
@@ -33,25 +34,45 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchUserRole = async () => {
       if (user) {
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
+        // HACKATHON FIX: Race against a timeout
+        // If Firestore is offline or slow, we don't want to block the UI forever.
+        // We default to 'applicant' if it takes too long.
 
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-            if (userData.role && ['applicant', 'recruiter'].includes(userData.role)) {
-              setUserRoleState(userData.role);
+        let isMounted = true;
+        const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000)); // 2 second timeout
+
+        try {
+          const fetchPromise = (async () => {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            return userSnap;
+          })();
+
+          const result = await Promise.race([fetchPromise, timeoutPromise]);
+
+          if (result && isMounted) {
+            // It was the fetch that won and returned a snapshot
+            // (Timeout promise resolves to undefined/void)
+            const snap = result as any;
+            if (snap.exists && snap.exists()) {
+              const userData = snap.data();
+              if (userData.role && ['applicant', 'recruiter'].includes(userData.role)) {
+                setUserRoleState(userData.role);
+              } else {
+                setUserRoleState('applicant');
+              }
             } else {
-              // Default to applicant if no role is set
+              // No user profile yet or timeout
               setUserRoleState('applicant');
             }
-          } else {
-            // If no user profile exists yet, default to applicant
+          } else if (isMounted) {
+            // Timeout won
+            console.warn('Role fetch timed out, defaulting to applicant');
             setUserRoleState('applicant');
           }
         } catch (error) {
           console.error('Error fetching user role:', error);
-          setUserRoleState('applicant');
+          if (isMounted) setUserRoleState('applicant');
         }
       } else {
         setUserRoleState(null);

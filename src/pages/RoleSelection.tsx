@@ -416,35 +416,35 @@ export default function RoleSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1f3445]/10 to-blue-950/20">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-violet-600 to-indigo-600">
       <Header />
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Half - Role Selection (Static) */}
           <div className="flex flex-col justify-center">
             <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-[#1f3445] mb-4">Perfect Placement</h1>
-              <p className="text-lg text-[#1f3445]/80 font-medium">Connecting talent with opportunity</p>
+              <h1 className="text-4xl font-bold text-white mb-4">Perfect Placement</h1>
+              <p className="text-lg text-blue-100 font-medium">Connecting talent with opportunity</p>
             </div>
 
             <div className="space-y-6">
               <Card
-                className={`bg-white/90 border-[#1f3445]/30 hover:border-[#1f3445] transition-colors cursor-pointer ${selectedRole === 'applicant' ? 'border-[#1f3445] bg-white/95' : ''}`}
+                className={`bg-white/90 border-white/20 hover:bg-white hover:scale-[1.02] transition-all cursor-pointer shadow-xl ${selectedRole === 'applicant' ? 'ring-4 ring-blue-300' : ''}`}
                 onClick={() => setSelectedRole('applicant')}
               >
                 <CardContent className="p-6">
-                  <CardTitle className="text-xl font-bold text-[#1f3445]">Are you an Applicant?</CardTitle>
-                  <p className="text-[#1f3445]/70 mt-2">Find your dream internship and grow your career</p>
+                  <CardTitle className="text-xl font-bold text-slate-900">Are you an Applicant?</CardTitle>
+                  <p className="text-slate-600 mt-2">Find your dream internship and grow your career</p>
                 </CardContent>
               </Card>
 
               <Card
-                className={`bg-white/90 border-[#1f3445]/30 hover:border-[#1f3445] transition-colors cursor-pointer ${selectedRole === 'recruiter' ? 'border-[#1f3445] bg-white/95' : ''}`}
+                className={`bg-white/90 border-white/20 hover:bg-white hover:scale-[1.02] transition-all cursor-pointer shadow-xl ${selectedRole === 'recruiter' ? 'ring-4 ring-purple-300' : ''}`}
                 onClick={() => setSelectedRole('recruiter')}
               >
                 <CardContent className="p-6">
-                  <CardTitle className="text-xl font-bold text-[#1f3445]">Are you a Recruiter?</CardTitle>
-                  <p className="text-[#1f3445]/70 mt-2">Find the best talent for your organization</p>
+                  <CardTitle className="text-xl font-bold text-slate-900">Are you a Recruiter?</CardTitle>
+                  <p className="text-slate-600 mt-2">Find the best talent for your organization</p>
                 </CardContent>
               </Card>
             </div>

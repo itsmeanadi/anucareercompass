@@ -202,11 +202,18 @@ export default function RecruiterDashboard() {
             <span className="text-xl font-bold text-[#1f3445]">Perfect Placement</span>
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/dashboard')}
+              className="hidden sm:flex border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10"
+            >
+              Switch to Applicant
+            </Button>
             <span className="text-sm text-[#1f3445]/80 font-medium hidden sm:block">
               Recruiter Account
             </span>
-            <Button variant="outline" size="icon" className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10">
-              <MessageCircle className="w-5 h-5" />
+            <Button variant="outline" size="icon" onClick={handleSignOut} className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10">
+              <LogOut className="w-5 h-5" />
             </Button>
           </div>
         </div>
@@ -461,10 +468,10 @@ export default function RecruiterDashboard() {
                           <div className="flex flex-wrap items-center gap-2 mb-1">
                             <h3 className="text-lg font-bold text-[#1f3445]">{applicant.name}</h3>
                             <Badge className={`${applicant.status === 'Shortlisted'
-                                ? 'bg-blue-500/20 text-blue-700'
-                                : applicant.status === 'Reviewed'
-                                  ? 'bg-green-500/20 text-green-700'
-                                  : 'bg-yellow-500/20 text-yellow-700'
+                              ? 'bg-blue-500/20 text-blue-700'
+                              : applicant.status === 'Reviewed'
+                                ? 'bg-green-500/20 text-green-700'
+                                : 'bg-yellow-500/20 text-yellow-700'
                               }`}>
                               {applicant.status}
                             </Badge>

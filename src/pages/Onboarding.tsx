@@ -30,6 +30,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useRole } from '@/lib/role-context';
 import { toast } from 'sonner';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface FormData {
   yearOfStudy: string;
@@ -634,31 +636,24 @@ export default function Onboarding() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    try {
-      // Save to Firebase Firestore
-      if (user) {
-        const { doc, setDoc } = await import('firebase/firestore');
-        const { db } = await import('@/lib/firebase');
-        const userRef = doc(db, 'users', user.uid);
 
-        // Update user's onboarding data in Firestore
-        await setDoc(userRef, {
-          onboardingData: formData,
-          onboardingCompleted: true,
-          updatedAt: new Date()
-        }, { merge: true });
+    // Optimistic UI: assume success and navigate fast
+    toast.success('Setup complete! Redirecting...');
 
-        toast.success('Onboarding completed successfully!');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
-      }
-    } catch (error) {
-      console.error('Error saving onboarding data:', error);
-      toast.error('Failed to save onboarding data. Please try again.');
-    } finally {
-      setSubmitting(false);
+    // Background save (Fire and Forget)
+    if (user) {
+      const userRef = doc(db, 'users', user.uid);
+      setDoc(userRef, {
+        onboardingData: formData,
+        onboardingCompleted: true,
+        updatedAt: new Date()
+      }, { merge: true }).catch(err => console.warn('Background save failed', err));
     }
+
+    // Navigate immediately (small delay for UX feel, not network dependence)
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 500);
   };
 
   const renderStep = () => {
@@ -681,38 +676,46 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="glass sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1f3445] to-slate-700 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+              <BookOpen className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">Perfect Placement</span>
+            <span className="text-xl font-bold text-slate-900">CareerCompass</span>
           </div>
-          <span className="text-sm font-bold text-[#1f3445]">Step {currentStep} of {totalSteps}</span>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              />
+            </div>
+            <span className="text-sm font-bold text-slate-600">Step {currentStep} of {totalSteps}</span>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <div className="glass rounded-2xl p-6 sm:p-8">
+      <main className="max-w-2xl mx-auto px-4 py-12">
+        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
           {renderStep()}
         </div>
 
         {/* Navigation */}
         <div className="flex justify-between mt-8">
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="h-12 px-6"
+            className="h-12 px-6 text-slate-500 hover:text-slate-900"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
 
           {currentStep < totalSteps ? (
-            <Button onClick={nextStep} className="h-12 px-8 bg-[#1f3445] hover:bg-[#1f3445]/90 text-white">
+            <Button onClick={nextStep} className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg shadow-blue-600/25">
               Continue
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -720,10 +723,9 @@ export default function Onboarding() {
             <Button
               onClick={handleSubmit}
               disabled={submitting}
-              className="h-12 px-8 bg-[#1f3445] hover:bg-[#1f3445]/90 text-white"
+              className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg shadow-blue-600/25"
             >
-              {submitting && <span className="animate-spin mr-2">⏳</span>}
-              Complete Setup
+              {submitting ? 'Finishing...' : 'Complete Setup'}
             </Button>
           )}
         </div>

@@ -1,73 +1,117 @@
-# Welcome to Perfect Placement
+# Perfect Placement
 
-## Project info
+Perfect Placement is a career guidance platform that helps students find internships and prepare for placements. The platform connects talented students with companies looking for interns, offering personalized recommendations and career roadmaps.
 
-**Application**: Perfect Placement Career Guidance Platform
+## Features
 
-## How can I edit this code?
+- **Personalized Internship Recommendations**: Based on user skills, preferences, and eligibility
+- **Career Roadmaps**: Customized learning paths based on successful seniors' journeys
+- **Onboarding Process**: Comprehensive onboarding to understand user goals and preferences
+- **Google Authentication**: Secure authentication using Firebase Google OAuth
+- **Role-based Access**: Different dashboards for applicants and recruiters
+- **Skill Gap Analysis**: Identify areas for improvement based on target roles
+- **Application Tracking**: Track and manage internship applications
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Perfect Placement**
+- **Frontend**: React, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Authentication**: Firebase Auth
+- **Database**: Firebase Firestore
+- **Build Tool**: Vite
+- **Routing**: React Router DOM
 
-Simply visit the Perfect Placement platform and start prompting.
+## Installation
 
-Changes made via Perfect Placement will be committed automatically to this repo.
+1. Clone the repository:
+```bash
+git clone <repository-url>
+```
 
-**Use your preferred IDE**
+2. Navigate to the project directory:
+```bash
+cd perfect-placement
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Perfect Placement.
+3. Install dependencies:
+```bash
+npm install
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+4. Create a `.env` file in the root directory and add your Firebase configuration:
+```env
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+5. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── components/          # Reusable UI components
+│   ├── landing/         # Landing page components
+│   ├── onboarding/      # Onboarding step components
+│   └── recruiter/       # Recruiter-specific components
+├── hooks/              # Custom React hooks
+├── integrations/       # Third-party service integrations
+│   └── supabase/       # (Removed - was for Supabase)
+├── lib/                # Utility functions and contexts
+│   ├── auth-context.tsx # Authentication context
+│   ├── role-context.tsx # Role management context
+│   └── firebase.ts     # Firebase configuration
+├── pages/              # Route components
+└── App.tsx             # Main application component
+```
 
-**Use GitHub Codespaces**
+## Firebase Setup
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To use this application, you need to set up a Firebase project:
 
-## What technologies are used for this project?
+1. Go to the [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project
+3. Enable Firebase Authentication (Email/Password and Google providers)
+4. Set up Firestore database with appropriate security rules
+5. Configure the Firebase SDK with your project credentials
 
-This project is built with:
+## Security Rules (Firestore)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Example security rules for Firestore:
 
-## How can I deploy this project?
+```firestore
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /internships/{internshipId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.uid == resource.data.posted_by;
+    }
+  }
+}
+```
 
-Simply open Perfect Placement and click on Share -> Publish.
+## Contributing
 
-## Can I connect a custom domain to my Perfect Placement project?
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a pull request
 
-Yes, you can!
+## License
 
-To connect a domain, navigate to Perfect Placement > Settings > Domains and click Connect Domain.
-
-Read more about our platform features in our documentation.
+This project is licensed under the MIT License.

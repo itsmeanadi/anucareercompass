@@ -1,19 +1,86 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { useRole } from '@/lib/role-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  User, GraduationCap, Calendar, BookOpen, 
-  CalendarDays, MapPin, ExternalLink, Clock
+import { Progress } from '@/components/ui/progress';
+import {
+  BookOpen,
+  User,
+  Target,
+  TrendingUp,
+  Star,
+  MapPin,
+  Clock,
+  IndianRupee,
+  Users,
+  BarChart3,
+  MessageCircle,
+  LogOut,
+  ArrowLeft,
+  Filter,
+  ChevronDown,
+  Search,
+  ExternalLink,
+  Calendar,
+  Building,
+  Award,
+  CheckCircle,
+  XCircle,
+  BookText,
+  Lightbulb,
+  GraduationCap,
+  Briefcase,
+  Globe
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+interface Internship {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  duration: string;
+  stipend: number;
+  type: string;
+  skills: string[];
+  description: string;
+  requirements: string;
+  rating: number;
+  reviews: number;
+  posted_date: string;
+  application_deadline: string;
+  match: number;
+  featured: boolean;
+}
+
+interface UserProfile {
+  full_name: string;
+  email: string;
+  year_of_study: string;
+  cgpa_range: string;
+  education_stream: string;
+  target_industries: string[];
+  primary_technical_strength: string;
+  weekly_commitment_hours: number;
+  learning_style: string;
+}
+
+interface OnboardingData {
+  primary_goal: string;
+  target_companies: string[];
+  internship_type_preference: string;
+  preferred_duration: string;
+  wants_senior_guidance: boolean;
+  wants_peer_comparison: boolean;
+}
 
 interface TimelineEvent {
   id: string;
   title: string;
-  type: 'workshop' | 'course' | 'event' | 'project' | 'certification' | 'internship' | 'placement';
+  type: string;
   date: string;
   duration: string;
   skill: string;
@@ -24,17 +91,69 @@ interface TimelineEvent {
   internshipOutcome: string;
 }
 
-interface NewRoadmapItem {
-  initiativeType: 'workshop' | 'certification' | 'course' | 'internship' | 'placement';
-  title: string;
-  date: string;
-  duration: string;
-  skill: string;
-  description: string;
-  mode: 'online' | 'offline';
-  location?: string;
-}
+// Mock data for internships - in a real app, this would come from Firestore
+const mockInternships: Internship[] = [
+  {
+    id: '1',
+    title: 'Frontend Developer Intern',
+    company: 'TechCorp',
+    location: 'Bangalore',
+    duration: '3 months',
+    stipend: 35000,
+    type: 'private',
+    skills: ['React', 'TypeScript', 'Tailwind'],
+    description: 'Develop responsive web applications using modern technologies.',
+    requirements: 'Knowledge of React and JavaScript frameworks',
+    rating: 4.5,
+    reviews: 12,
+    posted_date: '2024-01-15',
+    application_deadline: '2024-02-20',
+    match: 95,
+    featured: true
+  },
+  {
+    id: '2',
+    title: 'Backend Engineer Intern',
+    company: 'DataSystems',
+    location: 'Remote',
+    duration: '6 months',
+    stipend: 40000,
+    type: 'private',
+    skills: ['Node.js', 'MongoDB', 'Express'],
+    description: 'Build scalable backend systems and APIs.',
+    requirements: 'Experience with server-side development',
+    rating: 4.7,
+    reviews: 8,
+    posted_date: '2024-01-10',
+    application_deadline: '2024-02-15',
+    match: 87,
+    featured: true
+  }
+];
 
+// Mock data for user profile and onboarding
+const mockUserProfile: UserProfile = {
+  full_name: 'John Doe',
+  email: 'john.doe@example.com',
+  year_of_study: '3rd Year',
+  cgpa_range: '8.0-9.0',
+  education_stream: 'Computer Science',
+  target_industries: ['Technology', 'Finance'],
+  primary_technical_strength: 'Frontend Development',
+  weekly_commitment_hours: 20,
+  learning_style: 'Visual Learner'
+};
+
+const mockOnboardingData: OnboardingData = {
+  primary_goal: 'Get tech internship',
+  target_companies: ['Google', 'Microsoft', 'Amazon'],
+  internship_type_preference: 'Full-time',
+  preferred_duration: '3-6 months',
+  wants_senior_guidance: true,
+  wants_peer_comparison: true
+};
+
+// Mock timeline events
 const mockTimelineEvents: TimelineEvent[] = [
   {
     id: '1',
@@ -70,56 +189,52 @@ const mockTimelineEvents: TimelineEvent[] = [
     skill: 'Problem Solving',
     description: 'National level hackathon focusing on sustainability solutions',
     mode: 'offline',
-    location: 'Bangalore',
+    location: 'Mumbai',
     rating: 4.7,
-    internshipOutcome: 'Won 2nd prize, got noticed by startup'
-  },
-  {
-    id: '4',
-    title: 'Backend Development Course',
-    type: 'course',
-    date: 'Jun 2023',
-    duration: '8 weeks',
-    skill: 'Node.js',
-    description: 'Learn backend development with Node.js, Express, and MongoDB',
-    mode: 'online',
-    rating: 4.6,
-    internshipOutcome: 'Backend Intern at StartupX'
-  },
-  {
-    id: '5',
-    title: 'Open Source Contribution',
-    type: 'project',
-    date: 'Jul 2023',
-    duration: '2 months',
-    skill: 'Collaboration',
-    description: 'Contributed to popular React component library',
-    mode: 'online',
-    rating: 4.5,
-    internshipOutcome: 'Added to portfolio, impressed recruiters'
+    internshipOutcome: 'Won 2nd place - led to internship offer'
   }
 ];
 
 export default function Roadmap() {
-  const [studentDetails, setStudentDetails] = useState({
-    name: 'John Doe',
-    currentYear: '2',
-    branch: 'Computer Science',
-    grade: 'A'
-  });
-
-  const [newRoadmapItem, setNewRoadmapItem] = useState<NewRoadmapItem>({
-    initiativeType: 'course',
-    title: '',
-    date: '',
-    duration: '',
-    skill: '',
-    description: '',
-    mode: 'online',
-  });
-
-  const [userTimelineEvents, setUserTimelineEvents] = useState<TimelineEvent[]>([]);
+  const { user, signOut } = useAuth();
+  const { userRole } = useRole();
+  const [profile, setProfile] = useState<UserProfile>(mockUserProfile);
+  const [onboardingData, setOnboardingData] = useState<OnboardingData>(mockOnboardingData);
+  const [internships, setInternships] = useState<Internship[]>(mockInternships);
+  const [userTimelineEvents, setUserTimelineEvents] = useState<TimelineEvent[]>(mockTimelineEvents);
   const [activeTab, setActiveTab] = useState<'timeline' | 'skills'>('timeline');
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Simulate loading data from Firestore
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast.error('Failed to sign out');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1f3445]"></div>
+          <p className="mt-4 text-[#1f3445]">Loading roadmap...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,7 +247,7 @@ export default function Roadmap() {
             </div>
             <span className="text-xl font-bold">Perfect Placement</span>
           </div>
-          <Button variant="outline" onClick={() => window.history.back()}>
+          <Button variant="outline" onClick={() => navigate('/dashboard')}>
             Back to Dashboard
           </Button>
         </div>
@@ -153,436 +268,348 @@ export default function Roadmap() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <Label className="text-[#1f3445]/80">Full Name</Label>
-              <Input 
-                value={studentDetails.name}
-                onChange={(e) => setStudentDetails({...studentDetails, name: e.target.value})}
-                className="mt-1"
+              <Input
+                value={profile.full_name}
+                readOnly
+                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
               />
             </div>
             <div>
-              <Label className="text-[#1f3445]/80">Current Year</Label>
-              <Select value={studentDetails.currentYear} onValueChange={(value) => setStudentDetails({...studentDetails, currentYear: value})}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1st Year</SelectItem>
-                  <SelectItem value="2">2nd Year</SelectItem>
-                  <SelectItem value="3">3rd Year</SelectItem>
-                  <SelectItem value="4">4th Year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-[#1f3445]/80">Branch</Label>
-              <Input 
-                value={studentDetails.branch}
-                onChange={(e) => setStudentDetails({...studentDetails, branch: e.target.value})}
-                className="mt-1"
+              <Label className="text-[#1f3445]/80">Email</Label>
+              <Input
+                value={profile.email}
+                readOnly
+                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
               />
             </div>
             <div>
-              <Label className="text-[#1f3445]/80">Last Semester Grade</Label>
-              <Input 
-                value={studentDetails.grade}
-                onChange={(e) => setStudentDetails({...studentDetails, grade: e.target.value})}
-                className="mt-1"
+              <Label className="text-[#1f3445]/80">Year of Study</Label>
+              <Input
+                value={profile.year_of_study}
+                readOnly
+                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-[#1f3445]/80">CGPA Range</Label>
+              <Input
+                value={profile.cgpa_range}
+                readOnly
+                className="h-10 border-[#1f3445]/30 text-[#1f3445] bg-background mt-1"
               />
             </div>
           </div>
         </div>
 
-        {/* Add New Roadmap Item Form */}
+        {/* Tabs */}
         <div className="glass rounded-2xl p-6 mb-8">
-          <h2 className="text-xl font-bold text-[#1f3445] mb-4">Add New Roadmap Item</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            <div>
-              <Label className="text-[#1f3445]/80">Initiative Type</Label>
-              <Select value={newRoadmapItem.initiativeType} onValueChange={(value: any) => setNewRoadmapItem({...newRoadmapItem, initiativeType: value})}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="workshop">Workshop</SelectItem>
-                  <SelectItem value="certification">Certification</SelectItem>
-                  <SelectItem value="course">Course</SelectItem>
-                  <SelectItem value="internship">Internship</SelectItem>
-                  <SelectItem value="placement">Placement</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-[#1f3445]/80">Title</Label>
-              <Input 
-                value={newRoadmapItem.title}
-                onChange={(e) => setNewRoadmapItem({...newRoadmapItem, title: e.target.value})}
-                placeholder="Enter title"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-[#1f3445]/80">Start Date</Label>
-              <Input 
-                type="date"
-                value={newRoadmapItem.date}
-                onChange={(e) => setNewRoadmapItem({...newRoadmapItem, date: e.target.value})}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-[#1f3445]/80">Duration</Label>
-              <Input 
-                value={newRoadmapItem.duration}
-                onChange={(e) => setNewRoadmapItem({...newRoadmapItem, duration: e.target.value})}
-                placeholder="e.g., 4 weeks"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-[#1f3445]/80">Skill Developed</Label>
-              <Input 
-                value={newRoadmapItem.skill}
-                onChange={(e) => setNewRoadmapItem({...newRoadmapItem, skill: e.target.value})}
-                placeholder="e.g., React"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-[#1f3445]/80">Mode</Label>
-              <Select value={newRoadmapItem.mode} onValueChange={(value: any) => setNewRoadmapItem({...newRoadmapItem, mode: value})}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="online">Online</SelectItem>
-                  <SelectItem value="offline">Offline</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex border-b border-[#1f3445]/20 mb-6">
+            <Button
+              variant="ghost"
+              className={`mr-2 ${activeTab === 'timeline' ? 'border-b-2 border-[#1f3445] text-[#1f3445]' : 'text-[#1f3445]/70 hover:text-[#1f3445]'}`}
+              onClick={() => setActiveTab('timeline')}
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Timeline
+            </Button>
+            <Button
+              variant="ghost"
+              className={`${activeTab === 'skills' ? 'border-b-2 border-[#1f3445] text-[#1f3445]' : 'text-[#1f3445]/70 hover:text-[#1f3445]'}`}
+              onClick={() => setActiveTab('skills')}
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Skills Gap Analysis
+            </Button>
           </div>
-          <div className="mb-4">
-            <Label className="text-[#1f3445]/80">Description</Label>
-            <Input 
-              value={newRoadmapItem.description}
-              onChange={(e) => setNewRoadmapItem({...newRoadmapItem, description: e.target.value})}
-              placeholder="Describe the initiative"
-              className="mt-1"
-            />
-          </div>
-          <div className="mb-4">
-            <Label className="text-[#1f3445]/80">Location (optional)</Label>
-            <Input 
-              value={newRoadmapItem.location || ''}
-              onChange={(e) => setNewRoadmapItem({...newRoadmapItem, location: e.target.value})}
-              placeholder="e.g., Delhi"
-              className="mt-1"
-            />
-          </div>
-          <Button 
-            onClick={() => {
-              const newItem: TimelineEvent = {
-                id: Date.now().toString(),
-                title: newRoadmapItem.title,
-                type: newRoadmapItem.initiativeType,
-                date: newRoadmapItem.date,
-                duration: newRoadmapItem.duration,
-                skill: newRoadmapItem.skill,
-                description: newRoadmapItem.description,
-                mode: newRoadmapItem.mode,
-                location: newRoadmapItem.location,
-                rating: 4.5, // Default rating
-                internshipOutcome: 'Added to your roadmap', // Default outcome
-              };
-              setUserTimelineEvents([...userTimelineEvents, newItem]);
-              // Reset form
-              setNewRoadmapItem({
-                initiativeType: 'course',
-                title: '',
-                date: '',
-                duration: '',
-                skill: '',
-                description: '',
-                mode: 'online',
-              });
-            }}
-            className="bg-[#1f3445] hover:bg-[#1f3445]/90 text-white w-full md:w-auto"
-          >
-            Add to My Roadmap
-          </Button>
-        </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-[#1f3445]/30 mb-6">
-          <button
-            className={`pb-3 px-4 font-medium ${
-              activeTab === 'timeline'
-                ? 'text-[#1f3445] border-b-2 border-[#1f3445]'
-                : 'text-muted-foreground'
-            }`}
-            onClick={() => setActiveTab('timeline')}
-          >
-            <CalendarDays className="w-4 h-4 inline mr-2 text-[#1f3445]" />
-            Learning Timeline
-          </button>
-          <button
-            className={`pb-3 px-4 font-medium ${
-              activeTab === 'skills'
-                ? 'text-[#1f3445] border-b-2 border-[#1f3445]'
-                : 'text-muted-foreground'
-            }`}
-            onClick={() => setActiveTab('skills')}
-          >
-            <GraduationCap className="w-4 h-4 inline mr-2 text-[#1f3445]" />
-            Skill Development
-          </button>
-        </div>
-
-        {/* Conditional Content Rendering */}
-        <div className="space-y-6">
-          {activeTab === 'timeline' ? (
+          {activeTab === 'timeline' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-[#1f3445]">My Learning Journey Timeline</h2>
-              <p className="text-[#1f3445]/80 mb-6">
-                Track your learning journey and see recommendations from successful seniors.
-              </p>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#1f3445]">Your Learning Journey</h3>
+                <Button
+                  variant="outline"
+                  className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10"
+                  onClick={() => {
+                    toast.info('Adding new roadmap items coming soon!');
+                  }}
+                >
+                  Add New Item
+                </Button>
+              </div>
 
-              {/* User's Timeline Events */}
-              <div className="space-y-8 mb-12">
-                <h3 className="text-xl font-semibold text-[#1f3445] flex items-center gap-3 mb-6">
-                  <div className="p-2 rounded-lg bg-[#1f3445]/10">
-                    <User className="w-5 h-5 text-[#1f3445]" />
-                  </div>
-                  <span className="font-bold">My Personal Roadmap</span>
-                </h3>
-                {userTimelineEvents.length > 0 ? (
-                  <div className="relative">
-                    {/* Vertical line for desktop */}
-                    <div className="hidden md:block absolute left-4 top-0 h-full w-0.5 bg-[#1f3445]/30 -translate-x-1/2"></div>
-                    
-                    <div className="space-y-8">
-                      {userTimelineEvents.map((event, index) => (
-                        <div key={event.id} className="relative">
-                          {/* Desktop Timeline Dot */}
-                          <div className="hidden md:block absolute left-4 w-8 h-8 rounded-full bg-[#1f3445] border-4 border-background flex items-center justify-center -translate-x-1/2">
-                            <div className="w-2 h-2 rounded-full bg-white"></div>
-                          </div>
-                          
-                          {/* Mobile Timeline Dot */}
-                          <div className="md:hidden w-8 h-8 rounded-full bg-[#1f3445] border-4 border-background flex items-center justify-center mx-auto mb-4">
-                            <div className="w-2 h-2 rounded-full bg-white"></div>
-                          </div>
-                          
-                          <div className={`md:ml-12 glass rounded-2xl p-6 ${index % 2 === 0 ? 'md:mr-1/2' : 'md:ml-1/2 md:mr-0'}`}>
-                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="text-lg font-bold text-[#1f3445]">{event.title}</h3>
-                                  <Badge variant="secondary" className="text-xs bg-[#1f3445]/10 text-[#1f3445]">
-                                    {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                                  </Badge>
-                                  {event.mode === 'offline' && (
-                                    <Badge variant="outline" className="text-xs border-[#1f3445] text-[#1f3445]">
-                                      <MapPin className="w-3 h-3 mr-1 text-[#1f3445]" />
-                                      Offline
-                                    </Badge>
-                                  )}
-                                  {event.mode === 'online' && (
-                                    <Badge variant="outline" className="text-xs border-[#1f3445] text-[#1f3445]">
-                                      Online
-                                    </Badge>
-                                  )}
-                                </div>
-                                
-                                <p className="text-[#1f3445]/90 mb-3">{event.description}</p>
-                                
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-[#1f3445]/80">
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-4 h-4 text-[#1f3445]" />
-                                    {event.date}
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4 text-[#1f3445]" />
-                                    {event.duration}
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <GraduationCap className="w-4 h-4 text-[#1f3445]" />
-                                    {event.skill}
-                                  </span>
-                                  {event.location && (
-                                    <span className="flex items-center gap-1">
-                                      <MapPin className="w-4 h-4 text-[#1f3445]" />
-                                      {event.location}
-                                    </span>
-                                  )}
-                                </div>
-                                
-                                <div className="mt-3">
-                                  <div className="text-sm text-[#1f3445]/80 mb-1">Internship Outcome:</div>
-                                  <div className="text-[#1f3445] font-medium">{event.internshipOutcome}</div>
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col items-end sm:items-center">
-                                <div className="text-lg font-bold text-[#1f3445]">{event.rating}/5</div>
-                                <div className="text-xs text-[#1f3445]/80">Rating</div>
-                                <Button variant="outline" size="sm" className="mt-3 text-[#1f3445] border-[#1f3445] hover:bg-[#1f3445]/10">
-                                  <ExternalLink className="w-4 h-4 mr-1 text-[#1f3445]" />
-                                  Details
-                                </Button>
-                              </div>
+              <div className="relative">
+                {/* Timeline line */}
+                <div className="absolute left-4 top-0 h-full w-0.5 bg-[#1f3445]/20 transform translate-x-0.5"></div>
+
+                {userTimelineEvents.map((event, index) => (
+                  <div key={event.id} className="relative flex gap-4 mb-8">
+                    {/* Timeline dot */}
+                    <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-[#1f3445] text-white">
+                      {index + 1}
+                    </div>
+
+                    {/* Event card */}
+                    <div className="flex-1 bg-white/50 rounded-xl p-5 border border-[#1f3445]/20">
+                      <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+                        <div>
+                          <h4 className="font-bold text-[#1f3445] text-lg">{event.title}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="bg-[#1f3445]/10 text-[#1f3445]">
+                              {event.type}
+                            </Badge>
+                            <div className="flex items-center gap-1 text-sm text-[#1f3445]/80">
+                              <Calendar className="w-4 h-4" />
+                              <span>{event.date}</span>
                             </div>
+                            <div className="flex items-center gap-1 text-sm text-[#1f3445]/80">
+                              <Clock className="w-4 h-4" />
+                              <span>{event.duration}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Badge className="bg-green-500/20 text-green-700">
+                          {event.mode}
+                        </Badge>
+                      </div>
+
+                      <p className="text-[#1f3445]/90 mb-3">{event.description}</p>
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Target className="w-4 h-4 text-[#1f3445]" />
+                          <span className="font-medium">Focus: {event.skill}</span>
+                        </div>
+
+                        {event.location && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4 text-[#1f3445]" />
+                            <span>{event.location}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-bold">{event.rating}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-[#1f3445]/10">
+                        <p className="text-sm text-[#1f3445]/80">
+                          <span className="font-medium">Result:</span> {event.internshipOutcome}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'skills' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-bold text-[#1f3445]">Skill Gap Analysis</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border-[#1f3445]/30">
+                  <CardHeader>
+                    <CardTitle className="text-[#1f3445] font-bold">Your Current Skills</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {['React', 'JavaScript', 'TypeScript', 'Node.js', 'Python'].map((skill, index) => (
+                        <div key={skill} className="flex items-center justify-between">
+                          <span className="text-[#1f3445]">{skill}</span>
+                          <div className="flex items-center gap-2">
+                            <Progress value={(index % 2 === 0 ? 80 : 60) - (index * 5)} className="w-24 h-2" />
+                            <span className="text-sm text-[#1f3445]/70 w-10">{(index % 2 === 0 ? 80 : 60) - (index * 5)}%</span>
                           </div>
                         </div>
                       ))}
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-[#1f3445]/70">
-                    <p>No roadmap items added yet. Start by adding your first initiative!</p>
-                  </div>
-                )}
-              </div>
+                  </CardContent>
+                </Card>
 
-              {/* Senior Roadmaps Access Section */}
-              <div className="space-y-6 mt-10">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-[#1f3445] flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-[#1f3445]/10">
-                      <GraduationCap className="w-5 h-5 text-[#1f3445]" />
-                    </div>
-                    <span className="font-bold">Senior Roadmaps Access</span>
-                  </h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { name: 'Rahul Sharma', internship: 'Software Engineer Intern', company: 'Google', year: '2023' },
-                    { name: 'Priya Patel', internship: 'Data Science Intern', company: 'Microsoft', year: '2023' },
-                    { name: 'Amit Kumar', internship: 'Frontend Developer', company: 'Meta', year: '2022' },
-                    { name: 'Sneha Reddy', internship: 'Backend Engineer', company: 'Amazon', year: '2023' },
-                    { name: 'Vikram Singh', internship: 'ML Engineer', company: 'Tesla', year: '2022' },
-                    { name: 'Kavya Nair', internship: 'DevOps Intern', company: 'Netflix', year: '2023' }
-                  ].map((senior, index) => (
-                    <Card key={index} className="border-[#1f3445]/30 hover:border-[#1f3445] transition-colors">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-[#1f3445] text-lg">{senior.name}</CardTitle>
-                            <p className="text-sm text-[#1f3445]/80 mt-1">{senior.year} Graduate</p>
+                <Card className="border-[#1f3445]/30">
+                  <CardHeader>
+                    <CardTitle className="text-[#1f3445] font-bold">Skills Needed for Target Roles</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {['React', 'Advanced JavaScript', 'TypeScript', 'Node.js', 'GraphQL', 'AWS'].map((skill, index) => (
+                        <div key={skill} className="flex items-center justify-between">
+                          <span className="text-[#1f3445]">{skill}</span>
+                          <div className="flex items-center gap-2">
+                            <Progress value={index < 4 ? 90 : 70} className="w-24 h-2" />
+                            <span className="text-sm text-[#1f3445]/70 w-10">{index < 4 ? 90 : 70}%</span>
                           </div>
-                          <Badge variant="secondary" className="bg-[#1f3445]/10 text-[#1f3445]">
-                            {senior.year}
-                          </Badge>
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="mb-3">
-                          <p className="font-medium text-[#1f3445]">{senior.internship}</p>
-                          <p className="text-sm text-[#1f3445]/90">at {senior.company}</p>
-                        </div>
-                        <Button 
-                          className="w-full bg-[#1f3445] hover:bg-[#1f3445]/90 text-white"
-                          onClick={() => {
-                            alert(`Request sent to ${senior.name} for their roadmap access!`);
-                          }}
-                        >
-                          Request Roadmap
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-[#1f3445]">Skill Development Path</h2>
-              <p className="text-[#1f3445]/80 mb-6">
-                Based on your roadmap and successful internships, here are the key skills you should develop in priority order.
-              </p>
-
-              {/* Recommended Skills Based on User's Roadmap */}
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold text-[#1f3445] flex items-center gap-3 mb-6">
-                  <div className="p-2 rounded-lg bg-[#1f3445]/10">
-                    <GraduationCap className="w-5 h-5 text-[#1f3445]" />
-                  </div>
-                  <span className="font-bold">Skills from Your Roadmap</span>
-                </h3>
-                
-                {userTimelineEvents.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {userTimelineEvents.map((event, index) => (
-                      <Card key={`user-skill-${index}`} className="border-[#1f3445]/50 bg-[#1f3445]/5 hover:border-[#1f3445] transition-colors">
-                        <CardHeader>
-                          <CardTitle className="text-[#1f3445]">{event.skill}</CardTitle>
-                          <Badge className="w-fit bg-[#1f3445] text-white">
-                            From Your {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                          </Badge>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-[#1f3445]/80 mb-4">{event.description}</p>
-                          <Button className="w-full bg-[#1f3445] hover:bg-[#1f3445]/90 text-white">
-                            <BookOpen className="w-4 h-4 mr-2 text-white" />
-                            Continue Learning
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-[#1f3445]/70">
-                    <p>Add items to your roadmap to see skills you're developing.</p>
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* General Recommended Skills */}
-              <div>
-                <h3 className="text-xl font-semibold text-[#1f3445] flex items-center gap-3 mb-6">
-                  <div className="p-2 rounded-lg bg-[#1f3445]/10">
-                    <BookOpen className="w-5 h-5 text-[#1f3445]" />
+              <Card className="border-[#1f3445]/30">
+                <CardHeader>
+                  <CardTitle className="text-[#1f3445] font-bold">Recommended Learning Path</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3 p-4 bg-[#1f3445]/5 rounded-lg">
+                      <div className="w-8 h-8 rounded-full bg-[#1f3445]/20 flex items-center justify-center flex-shrink-0">
+                        <Lightbulb className="w-4 h-4 text-[#1f3445]" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#1f3445] mb-1">Advanced React Patterns</h4>
+                        <p className="text-sm text-[#1f3445]/80 mb-2">Learn advanced React patterns to improve your skills in the most in-demand framework</p>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">6 weeks</span>
+                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">Online</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 bg-[#1f3445]/5 rounded-lg">
+                      <div className="w-8 h-8 rounded-full bg-[#1f3445]/20 flex items-center justify-center flex-shrink-0">
+                        <Lightbulb className="w-4 h-4 text-[#1f3445]" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#1f3445] mb-1">System Design Fundamentals</h4>
+                        <p className="text-sm text-[#1f3445]/80 mb-2">Master the fundamentals of system design for senior developer roles</p>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">4 weeks</span>
+                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">Online</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 bg-[#1f3445]/5 rounded-lg">
+                      <div className="w-8 h-8 rounded-full bg-[#1f3445]/20 flex items-center justify-center flex-shrink-0">
+                        <Lightbulb className="w-4 h-4 text-[#1f3445]" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#1f3445] mb-1">Behavioral Interview Prep</h4>
+                        <p className="text-sm text-[#1f3445]/80 mb-2">Prepare for behavioral interviews with structured response techniques</p>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">2 weeks</span>
+                          <span className="bg-[#1f3445]/10 text-[#1f3445] px-2 py-1 rounded">Workshop</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <span className="font-bold">General Recommendations</span>
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[ 
-                    { skill: 'React', priority: 'High', description: 'Essential for frontend development' },
-                    { skill: 'Node.js', priority: 'High', description: 'Backend development with JavaScript' },
-                    { skill: 'Python', priority: 'High', description: 'Versatile language for ML and automation' },
-                    { skill: 'Machine Learning', priority: 'Medium', description: 'Growing demand in tech industry' },
-                    { skill: 'Cloud Computing', priority: 'Medium', description: 'AWS, Azure, or GCP knowledge' },
-                    { skill: 'Database Design', priority: 'Medium', description: 'SQL and NoSQL database management' }
-                  ].map((item, index) => (
-                    <Card key={`general-skill-${index}`} className="border-[#1f3445]/30 hover:border-[#1f3445] transition-colors">
-                      <CardHeader>
-                        <CardTitle className="text-[#1f3445]">{item.skill}</CardTitle>
-                        <Badge className={
-                          item.priority === 'High' 
-                            ? 'w-fit bg-red-500 hover:bg-red-500 text-white' 
-                            : item.priority === 'Medium' 
-                              ? 'w-fit bg-yellow-500 hover:bg-yellow-500 text-white' 
-                              : 'w-fit bg-green-500 hover:bg-green-500 text-white'
-                        }>
-                          {item.priority} Priority
-                        </Badge>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-[#1f3445]/80 mb-4">{item.description}</p>
-                        <Button className="w-full bg-[#1f3445] hover:bg-[#1f3445]/90 text-white">
-                          <BookOpen className="w-4 h-4 mr-2 text-white" />
-                          Learn This Skill
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           )}
+        </div>
+
+        {/* Recommended Internships */}
+        <div className="glass rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-[#1f3445]">Recommended Internships</h2>
+            <Button
+              variant="outline"
+              className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10"
+              onClick={() => navigate('/dashboard')}
+            >
+              View All
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {internships.slice(0, 2).map((internship) => (
+              <div key={internship.id} className="bg-white/50 rounded-xl p-5 border border-[#1f3445]/20">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-start gap-2 mb-2">
+                      <h3 className="text-lg font-bold text-[#1f3445]">{internship.title}</h3>
+                      {internship.featured && (
+                        <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+                          Featured
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="bg-[#1f3445]/10 text-[#1f3445]">
+                        {internship.type === 'govt' ? 'Government' : 'Private'}
+                      </Badge>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-[#1f3445]/80 mb-3">
+                      <div className="flex items-center gap-1">
+                        <Building className="w-4 h-4" />
+                        <span>{internship.company}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        <span>{internship.location}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{internship.duration}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <IndianRupee className="w-4 h-4" />
+                        <span className="font-bold">₹{internship.stipend.toLocaleString()}/month</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {internship.skills.slice(0, 3).map((skill: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="border-[#1f3445]/30 text-[#1f3445]">
+                          {skill}
+                        </Badge>
+                      ))}
+                      {internship.skills.length > 3 && (
+                        <Badge variant="outline" className="border-[#1f3445]/30 text-[#1f3445]">
+                          +{internship.skills.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2 min-w-fit">
+                    <Button
+                      variant="outline"
+                      className="border-[#1f3445] text-[#1f3445] hover:bg-[#1f3445]/10 font-medium"
+                      onClick={() => navigate(`/internship/${internship.id}`)}
+                    >
+                      View Details
+                      <ExternalLink className="w-4 h-4 ml-2" />
+                    </Button>
+
+                    <Button
+                      className="bg-[#1f3445] hover:bg-[#1f3445]/90 text-white font-medium"
+                      onClick={() => {
+                        toast.success(`Applied to ${internship.title} at ${internship.company}`);
+                        // In a real app, this would submit an application
+                      }}
+                    >
+                      Apply Now
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>
   );
 }
+
+// Add missing imports for the components used in the JSX
+const Label = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <label className={className}>{children}</label>
+);
+
+const Input = ({ value, readOnly, className, ...props }: React.ComponentProps<'input'>) => (
+  <input
+    value={value}
+    readOnly={readOnly}
+    className={className}
+    {...props}
+  />
+);

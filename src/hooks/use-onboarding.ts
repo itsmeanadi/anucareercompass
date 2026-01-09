@@ -1,181 +1,124 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/integrations/supabase/client';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
-export interface OnboardingData {
-  // Section 1: Academic & Eligibility
-  yearOfStudy: string;
-  cgpaRange: string;
-  activeBacklogs: string;
-  educationStream: string;
-  universityName: string;
-  degreeBranch: string;
-  
-  // Section 2: Domain & Skills
-  targetIndustries: string[];
-  coreEngineeringType: string;
-  primaryTechnicalStrength: string;
-  secondarySkills: string[];
-  certificationStatus: string;
-  certificationFiles: File[];
-  projectExperienceLevel: string;
-  
-  // Section 3: Experience & Exposure
-  hasPreviousInternships: boolean;
-  internshipDetails: { company: string; role: string; duration: string }[];
-  hasHackathonExperience: boolean;
-  hasOpensourceExperience: boolean;
-  interviewComfort: number;
-  aptitudeComfort: number;
-  
-  // Section 4: Logistics & Preferences
-  internshipTypePreference: string;
-  preferredDuration: string;
-  govtInternshipInterest: string;
-  relocationReadiness: string;
-  
-  // Section 5: Career Intent
-  primaryGoal: string;
-  targetCompanies: string[];
-  weeklyCommitmentHours: number;
-  learningStyle: string;
-  
-  // Section 6: Social & Guidance
-  wantsSeniorGuidance: boolean;
-  wantsPeerComparison: boolean;
+interface OnboardingData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
-const initialData: OnboardingData = {
-  yearOfStudy: '',
-  cgpaRange: '',
-  activeBacklogs: '',
-  educationStream: '',
-  universityName: '',
-  degreeBranch: '',
-  targetIndustries: [],
-  coreEngineeringType: '',
-  primaryTechnicalStrength: '',
-  secondarySkills: [],
-  certificationStatus: '',
-  certificationFiles: [],
-  projectExperienceLevel: '',
-  hasPreviousInternships: false,
-  internshipDetails: [],
-  hasHackathonExperience: false,
-  hasOpensourceExperience: false,
-  interviewComfort: 3,
-  aptitudeComfort: 3,
-  internshipTypePreference: '',
-  preferredDuration: '',
-  govtInternshipInterest: '',
-  relocationReadiness: '',
-  primaryGoal: '',
-  targetCompanies: [],
-  weeklyCommitmentHours: 10,
-  learningStyle: '',
-  wantsSeniorGuidance: false,
-  wantsPeerComparison: false,
-};
-
 export function useOnboarding() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [data, setData] = useState<OnboardingData>(initialData);
-  const [loading, setLoading] = useState(true);
-  const totalSteps = 6;
-  
   const { user } = useAuth();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
+  const [completed, setCompleted] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchOnboardingData = async () => {
-      if (user) {
-        try {
-          const { data: onboardingData, error } = await supabase
-            .from('onboarding_data')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
+    let isActive = true;
 
-          if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found
+    const loadOnboardingData = async () => {
+      if (!user || !isActive) return;
 
-          if (onboardingData) {
-            // Map the database fields back to our OnboardingData interface
-            const mappedData: Partial<OnboardingData> = {
-              yearOfStudy: onboardingData.year_of_study,
-              cgpaRange: onboardingData.cgpa_range,
-              activeBacklogs: onboardingData.active_backlogs,
-              educationStream: onboardingData.education_stream,
-              universityName: onboardingData.university_name,
-              degreeBranch: onboardingData.degree_branch,
-              targetIndustries: onboardingData.target_industries || [],
-              primaryTechnicalStrength: onboardingData.primary_technical_strength,
-              secondarySkills: onboardingData.secondary_skills || [],
-              certificationStatus: onboardingData.certification_status,
-              projectExperienceLevel: onboardingData.project_experience_level,
-              hasPreviousInternships: onboardingData.has_previous_internships,
-              internshipDetails: (onboardingData.internship_details && Array.isArray(onboardingData.internship_details)) 
-                ? onboardingData.internship_details as { company: string; role: string; duration: string }[] 
-                : [],
-              hasHackathonExperience: onboardingData.has_hackathon_experience,
-              hasOpensourceExperience: onboardingData.has_opensource_experience,
-              interviewComfort: onboardingData.interview_comfort,
-              aptitudeComfort: onboardingData.aptitude_comfort,
-              internshipTypePreference: onboardingData.internship_type_preference,
-              preferredDuration: onboardingData.preferred_duration,
-              govtInternshipInterest: onboardingData.govt_internship_interest,
-              relocationReadiness: onboardingData.relocation_readiness,
-              primaryGoal: onboardingData.primary_goal,
-              targetCompanies: onboardingData.target_companies || [],
-              weeklyCommitmentHours: onboardingData.weekly_commitment_hours,
-              learningStyle: onboardingData.learning_style,
-              wantsSeniorGuidance: onboardingData.wants_senior_guidance,
-              wantsPeerComparison: onboardingData.wants_peer_comparison,
-            };
-            
-            setData(prev => ({ ...prev, ...mappedData }));
-          }
-        } catch (error) {
-          console.error('Error fetching onboarding data:', error);
-        } finally {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists() && isActive) {
+          const data = userDocSnap.data();
+          setOnboardingData(data.onboardingData || {});
+          setCompleted(data.onboardingCompleted || false);
+        } else if (isActive) {
+          // If no document exists, initialize with empty data
+          setOnboardingData({});
+          setCompleted(false);
+        }
+      } catch (err) {
+        if (isActive) {
+          console.error('Error loading onboarding data:', err);
+          setError('Failed to load onboarding data');
+        }
+      } finally {
+        if (isActive) {
           setLoading(false);
         }
-      } else {
-        setLoading(false);
       }
     };
 
-    fetchOnboardingData();
+    loadOnboardingData();
+
+    return () => {
+      isActive = false;
+    };
   }, [user]);
 
-  const updateData = (updates: Partial<OnboardingData>) => {
-    setData(prev => ({ ...prev, ...updates }));
-  };
-
-  const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(prev => prev + 1);
+  const saveOnboardingData = async (data: OnboardingData) => {
+    if (!user) {
+      setError('User not authenticated');
+      return false;
     }
-  };
 
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
+    try {
+      setLoading(true);
+      setError(null);
 
-  const goToStep = (step: number) => {
-    if (step >= 1 && step <= totalSteps) {
-      setCurrentStep(step);
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, {
+        onboardingData: data,
+        onboardingCompleted: true,
+        updatedAt: new Date()
+      }, { merge: true });
+
+      setOnboardingData(data);
+      setCompleted(true);
+      return true;
+    } catch (err) {
+      console.error('Error saving onboarding data:', err);
+      setError('Failed to save onboarding data');
+      return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   return {
-    currentStep,
-    totalSteps,
-    data,
-    updateData,
-    nextStep,
-    prevStep,
-    goToStep,
+    onboardingData,
     loading,
+    error,
+    completed,
+    saveOnboardingData,
+    reload: () => {
+      if (user) {
+        const loadOnboardingData = async () => {
+          try {
+            setLoading(true);
+            setError(null);
+
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+              const data = userDocSnap.data();
+              setOnboardingData(data.onboardingData || {});
+              setCompleted(data.onboardingCompleted || false);
+            } else {
+              // If no document exists, initialize with empty data
+              setOnboardingData({});
+              setCompleted(false);
+            }
+          } catch (err) {
+            console.error('Error loading onboarding data:', err);
+            setError('Failed to load onboarding data');
+          } finally {
+            setLoading(false);
+          }
+        };
+        loadOnboardingData();
+      }
+    }
   };
 }

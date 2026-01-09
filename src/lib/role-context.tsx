@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from './auth-context';
-import { supabase } from '@/integrations/supabase/client';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 interface RoleContextType {
   userRole: 'applicant' | 'recruiter' | null;
@@ -17,20 +18,15 @@ export function RoleProvider({ children }: { children: ReactNode }) {
 
   const setUserRole = async (role: 'applicant' | 'recruiter') => {
     if (user) {
-      // Update user role in database
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({ 
-          user_id: user.id, 
-          user_type: role,
-          email: user.email || '',
-        }, {
-          onConflict: 'user_id'
-        });
+      // Update user role in Firestore
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, { 
+        email: user.email,
+        role: role,
+        updatedAt: new Date()
+      }, { merge: true });
       
-      if (!error) {
-        setUserRoleState(role);
-      }
+      setUserRoleState(role);
     }
   };
 
@@ -38,24 +34,20 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     const fetchUserRole = async () => {
       if (user) {
         try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
+          const userRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
 
-          if (error || !data) {
-            // If no profile exists yet, default to applicant
-            setUserRoleState('applicant');
-          } else {
-            // Check if user_type exists in the profile data
-            const profileData = data as any;
-            if (profileData.user_type && ['applicant', 'recruiter'].includes(profileData.user_type)) {
-              setUserRoleState(profileData.user_type);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (userData.role && ['applicant', 'recruiter'].includes(userData.role)) {
+              setUserRoleState(userData.role);
             } else {
-              // Default to applicant if no user_type is set
+              // Default to applicant if no role is set
               setUserRoleState('applicant');
             }
+          } else {
+            // If no user profile exists yet, default to applicant
+            setUserRoleState('applicant');
           }
         } catch (error) {
           console.error('Error fetching user role:', error);

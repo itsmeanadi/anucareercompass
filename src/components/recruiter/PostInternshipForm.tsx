@@ -5,9 +5,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+interface FormData {
+  title: string;
+  company: string;
+  location: string;
+  duration: string;
+  stipend: string;
+  type: 'private' | 'govt';
+  skills: string;
+  description: string;
+  requirements: string;
+  applicationDeadline: string;
+  contactEmail: string;
+}
 
 interface PostInternshipFormProps {
   onSuccess?: () => void;
@@ -17,7 +32,7 @@ interface PostInternshipFormProps {
 
 export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostInternshipFormProps) {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     company: '',
     location: '',
@@ -30,7 +45,7 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
     applicationDeadline: '',
     contactEmail: '',
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -52,34 +67,26 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
         return;
       }
 
-      // Insert the data (will work once the table is created)
-      try {
-        const { error: insertError } = await supabase
-          .from('internships' as any)
-          .insert([{
-            title: formData.title,
-            company: formData.company,
-            location: formData.location,
-            duration: formData.duration,
-            stipend: parseInt(formData.stipend) || 0,
-            type: formData.type,
-            skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
-            description: formData.description,
-            requirements: formData.requirements,
-            application_deadline: formData.applicationDeadline,
-            contact_email: formData.contactEmail || user?.email,
-            posted_by: user?.id || null,
-            status: 'active',
-          }]);
+      // Add the internship to Firestore
+      const internshipData = {
+        title: formData.title,
+        company: formData.company,
+        location: formData.location,
+        duration: formData.duration,
+        stipend: parseInt(formData.stipend) || 0,
+        type: formData.type,
+        skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill),
+        description: formData.description,
+        requirements: formData.requirements,
+        application_deadline: formData.applicationDeadline,
+        contact_email: formData.contactEmail || user?.email,
+        posted_by: user?.uid || null,
+        status: 'active',
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
 
-        if (insertError) {
-          throw insertError;
-        }
-      } catch (error) {
-        // If table doesn't exist or other error, log for development
-        console.error('Error inserting internship:', error);
-        // Still show success message to user
-      }
+      await addDoc(collection(db, 'internships'), internshipData);
 
       toast.success('Internship posted successfully!');
       setFormData({
@@ -99,13 +106,13 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
       if (onPostSuccess) {
         onPostSuccess();
       }
-      
+
       if (onSuccess) {
         onSuccess();
       } else if (onCancel) {
         onCancel();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error posting internship:', error);
       toast.error('Failed to post internship. Please try again.');
     } finally {
@@ -133,7 +140,7 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
                 required
               />
             </div>
-            
+
             <div>
               <Label htmlFor="company" className="text-[#1f3445] font-bold">Company Name *</Label>
               <Input
@@ -161,7 +168,7 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
                 required
               />
             </div>
-            
+
             <div>
               <Label htmlFor="duration" className="text-[#1f3445] font-bold">Duration</Label>
               <Input
@@ -188,11 +195,11 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
                 className="border-[#1f3445]/30 text-[#1f3445]"
               />
             </div>
-            
+
             <div>
               <Label className="text-[#1f3445] font-bold">Internship Type</Label>
-              <Select 
-                value={formData.type} 
+              <Select
+                value={formData.type}
                 onValueChange={(value) => handleSelectChange('type', value)}
               >
                 <SelectTrigger className="border-[#1f3445]/30 text-[#1f3445]">
@@ -256,7 +263,7 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
                 className="border-[#1f3445]/30 text-[#1f3445]"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="contactEmail" className="text-[#1f3445] font-bold">Contact Email</Label>
               <Input
@@ -272,8 +279,8 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               variant="outline"
               className="border-[#1f3445] text-[#1f3445] font-bold h-12 px-8 hover:bg-[#1f3445]/10"
               onClick={onCancel}
@@ -281,8 +288,8 @@ export function PostInternshipForm({ onSuccess, onCancel, onPostSuccess }: PostI
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="bg-[#1f3445] hover:bg-[#1f3445]/90 text-white font-bold h-12 px-8"
               disabled={loading}
             >

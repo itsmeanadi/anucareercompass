@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from './auth-context';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, DocumentSnapshot } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
 interface RoleContextType {
@@ -38,7 +38,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
         // If Firestore is offline or slow, we don't want to block the UI forever.
         // We default to 'applicant' if it takes too long.
 
-        let isMounted = true;
+        const isMounted = true;
         const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000)); // 2 second timeout
 
         try {
@@ -53,7 +53,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
           if (result && isMounted) {
             // It was the fetch that won and returned a snapshot
             // (Timeout promise resolves to undefined/void)
-            const snap = result as any;
+            const snap = result as DocumentSnapshot;
             if (snap.exists && snap.exists()) {
               const userData = snap.data();
               if (userData.role && ['applicant', 'recruiter'].includes(userData.role)) {

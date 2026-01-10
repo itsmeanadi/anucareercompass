@@ -1,0 +1,6 @@
+src/components/onboarding/StepAcademic.tsx(5,10): error TS2459: Module '"@/hooks/use-onboarding"' declares 'OnboardingData' locally, but it is not exported.
+src/components/onboarding/StepExperience.tsx(8,10): error TS2459: Module '"@/hooks/use-onboarding"' declares 'OnboardingData' locally, but it is not exported.
+src/components/onboarding/StepGoals.tsx(9,10): error TS2459: Module '"@/hooks/use-onboarding"' declares 'OnboardingData' locally, but it is not exported.
+src/components/onboarding/StepGuidance.tsx(4,10): error TS2459: Module '"@/hooks/use-onboarding"' declares 'OnboardingData' locally, but it is not exported.
+src/components/onboarding/StepPreferences.tsx(3,10): error TS2459: Module '"@/hooks/use-onboarding"' declares 'OnboardingData' locally, but it is not exported.
+src/components/onboarding/StepSkills.tsx(5,10): error TS2459: Module '"@/hooks/use-onboarding"' declares 'OnboardingData' locally, but it is not exported.

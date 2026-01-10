@@ -28,10 +28,7 @@ C:\Users\Anadi Sharma\2k26 hackathons\New folder (5)\anucareercompass\src\lib\au
   37:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
 C:\Users\Anadi Sharma\2k26 hackathons\New folder (5)\anucareercompass\src\lib\role-context.tsx
-   41:13  error    'isMounted' is never reassigned. Use 'const' instead                                                                            prefer-const
-   56:36  error    Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
   101:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
-✖ 11 problems (2 errors, 9 warnings)
-  1 error and 0 warnings potentially fixable with the `--fix` option.
+✖ 9 problems (0 errors, 9 warnings)
 

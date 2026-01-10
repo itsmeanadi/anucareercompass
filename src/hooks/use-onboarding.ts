@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/auth-context';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-interface OnboardingData {
+export interface OnboardingData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
